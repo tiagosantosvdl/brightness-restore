@@ -50,7 +50,7 @@ try {
     console.log('Updating extension/metadata.json...');
     const meta = require(METADATA_PATH);
     meta.version = parseInt(newVersion, 10);
-    meta['version-name'] = newVersion;
+    meta['version-name'] = pkg.version.replace('-', ' ');
     fs.writeFileSync(METADATA_PATH, `${JSON.stringify(meta, null, 2)}\n`);
 
     // Update prefs.js - Update BUILD_DATE constant + changelog

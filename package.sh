@@ -65,7 +65,7 @@ fi
 echo "🏗️  Building Brightness Restore extension package..."
 
 # Extension details
-EXTENSION_UUID="brightness-restore@DarkPhilosophy"
+EXTENSION_UUID=$(node -p 'require(process.argv[1]).uuid' "$PROJECT_DIR/extension/metadata.json")
 PACKAGE_NAME="${EXTENSION_UUID}.zip"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

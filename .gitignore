@@ -52,3 +52,8 @@ Thumbs.db
 # Backups
 *.backup*
 *.bak
+
+# Release packages and staging
+_build/
+dist/
+__pycache__/

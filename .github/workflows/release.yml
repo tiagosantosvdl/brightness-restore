@@ -1,0 +1,116 @@
+name: Release packages
+
+on:
+  push:
+    tags: ["v*"]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to build (downloads only; does not publish a release)"
+        type: string
+        default: "main"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.ref || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.event.release.tag_name || github.ref }}
+          fetch-depth: 0
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gettext libglib2.0-bin make dpkg-dev python3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+
+      - name: Validate source and packaging
+        run: |
+          python3 <<'PY'
+          import subprocess
+          from pathlib import Path
+          for source in sorted(Path('extension').rglob('*.js')):
+              with source.open() as stream:
+                  subprocess.run(['node', '--input-type=module', '--check'], stdin=stream, check=True)
+          PY
+          node .scripts/validate-build.js
+          node .scripts/scan-leaks.js
+          glib-compile-schemas --strict --dry-run extension/schemas
+          python3 -m unittest discover -s tests -p '*test.py'
+
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || (github.ref_type == 'tag' && github.ref_name) || '' }}
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          metadata = json.loads(Path('extension/metadata.json').read_text())
+          pkg = json.loads(Path('package.json').read_text())
+          lock = json.loads(Path('package-lock.json').read_text())
+          version = pkg['version']
+          if (lock['version'] != version or lock['packages']['']['version'] != version
+                  or metadata['version-name'] != version.replace('-', ' ')):
+              raise SystemExit('Version fields in package.json, package-lock.json and metadata.json must match.')
+          if str(metadata['version']) != Path('VERSION').read_text().strip():
+              raise SystemExit('VERSION must match the integer version in metadata.json.')
+          tag = os.environ['RELEASE_TAG']
+          if tag and tag != f'v{version}':
+              raise SystemExit(f'Release tag {tag} must match package.json (v{version}).')
+          PY
+
+      - name: Build installable packages
+        run: make release
+
+      - name: Verify package checksums
+        run: cd dist && sha256sum -c SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brightness-restore-release-packages
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    if: github.event_name == 'release' || (github.event_name == 'push' && github.ref_type == 'tag')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: brightness-restore-release-packages
+          path: dist
+
+      - name: Attach packages to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber
+          else
+            extra=()
+            if [[ "$RELEASE_TAG" == *-* ]]; then
+              extra+=(--prerelease)
+            fi
+            gh release create "$RELEASE_TAG" dist/* --verify-tag \
+              --title "Brightness Restore $RELEASE_TAG" --generate-notes "${extra[@]}"
+          fi

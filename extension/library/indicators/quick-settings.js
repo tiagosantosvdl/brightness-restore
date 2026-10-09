@@ -34,7 +34,8 @@ export class BrightnessQuickSettingsIndicator {
         this._box.add_child(this._icon);
         this._box.add_child(this._label);
 
-        this._indicator._addIndicator().add_child(this._box);
+        this._indicatorActor = this._indicator._addIndicator();
+        this._indicatorActor.add_child(this._box);
 
         this._indicator.connectObject('notify::allocation', () => this._ensurePosition(), this);
 
@@ -43,6 +44,11 @@ export class BrightnessQuickSettingsIndicator {
 
         this._captureDefaultPosition();
         this._ensurePosition();
+        this.setAvailable(false);
+    }
+
+    setAvailable(available) {
+        this._indicatorActor.visible = available;
     }
 
     update(percent, _valueNormalized) {

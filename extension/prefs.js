@@ -657,11 +657,11 @@ export default class BrightnessRestorePreferences extends ExtensionPreferences {
 
         const linkRow = new Adw.ActionRow({
             title: _('Project Homepage'),
-            subtitle: 'https://github.com/DarkPhilosophy/brightness-restore',
+            subtitle: 'https://github.com/tiagosantosvdl/brightness-restore',
         });
         addIcon(linkRow, 'web-browser-symbolic');
         const linkButton = new Gtk.LinkButton({
-            uri: 'https://github.com/DarkPhilosophy/brightness-restore',
+            uri: 'https://github.com/tiagosantosvdl/brightness-restore',
             icon_name: 'external-link-symbolic',
             valign: Gtk.Align.CENTER,
         });
@@ -674,7 +674,7 @@ export default class BrightnessRestorePreferences extends ExtensionPreferences {
         });
         addIcon(reportRow, 'tools-check-spelling-symbolic');
         const reportButton = new Gtk.LinkButton({
-            uri: 'https://github.com/DarkPhilosophy/brightness-restore/issues',
+            uri: 'https://github.com/tiagosantosvdl/brightness-restore/issues',
             icon_name: 'external-link-symbolic',
             valign: Gtk.Align.CENTER,
         });

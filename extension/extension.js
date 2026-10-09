@@ -42,6 +42,16 @@ function scheduleTimeoutOnce(priority, delayMs, callback) {
     });
 }
 
+/**
+ * Check whether a backend reading represents adjustable brightness.
+ *
+ * @param {number} value - Normalized brightness reading.
+ * @returns {boolean} Whether the reading is within the supported range.
+ */
+function isValidBrightness(value) {
+    return Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
 export default class BrightnessRestoreExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
@@ -150,7 +160,7 @@ export default class BrightnessRestoreExtension extends Extension {
 
         if (!this._proxy) {
             Logger.warn('No usable brightness backend found.');
-            if (this._ui) this._ui.update('Err', 0);
+            this._onChanged();
             return;
         }
 
@@ -179,7 +189,7 @@ export default class BrightnessRestoreExtension extends Extension {
         if (this._mode === 'hardware') {
             // DBus returns Variant<int32> (0-100)
             const val = this._proxy.get_cached_property('Brightness');
-            return val ? val.get_int32() / 100.0 : 0;
+            return val ? val.get_int32() / 100.0 : -1;
         } else {
             // Software is Float (0.0-1.0)
             return this._proxy.value;
@@ -187,7 +197,7 @@ export default class BrightnessRestoreExtension extends Extension {
     }
 
     _setBrightness(targetFloat) {
-        if (!this._proxy) return;
+        if (!isValidBrightness(targetFloat) || !isValidBrightness(this._getBrightness())) return;
 
         try {
             if (this._mode === 'hardware') {
@@ -224,11 +234,20 @@ export default class BrightnessRestoreExtension extends Extension {
         const val = this._getBrightness();
         Logger.debug(`_onChanged triggered. Mode: ${this._mode} | Value: ${val}`);
         this._updateUI(val);
+        if (!isValidBrightness(val)) {
+            if (this._saveTimeoutId) {
+                GLib.source_remove(this._saveTimeoutId);
+                this._saveTimeoutId = null;
+            }
+            return;
+        }
         this._saveBrightness(val);
     }
 
     // Called when the SLIDER is moved by the user in the menu
     _onSliderChanged(value) {
+        if (!isValidBrightness(this._getBrightness())) return;
+
         // Update Hardware immediately
         this._setBrightness(value);
 
@@ -270,10 +289,10 @@ export default class BrightnessRestoreExtension extends Extension {
     }
 
     _updateUI(value) {
-        if (typeof value !== 'number' || isNaN(value)) {
-            if (this._ui && this._ui.update) this._ui.update('?', 0);
-            return;
-        }
+        const available = isValidBrightness(value);
+        if (this._ui) this._ui.setAvailable(available);
+        if (!available) return;
+
         const pct = Math.round(value * 100);
         if (this._ui && this._ui.update) this._ui.update(pct, value);
     }

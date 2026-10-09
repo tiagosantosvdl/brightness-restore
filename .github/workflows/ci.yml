@@ -115,4 +115,4 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: extension-package
-                  path: brightness-restore@DarkPhilosophy.zip
+                  path: brightness-restore@tiagosantosvdl.github.com.zip

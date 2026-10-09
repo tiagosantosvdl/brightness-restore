@@ -97,7 +97,7 @@ node .scripts/detect-duplicate-symbols.js
 # Validate File Structure
 node .scripts/validate-build.js
 
-EXTENSION_ID="brightness-restore@DarkPhilosophy"
+EXTENSION_ID=$(node -p 'require(process.argv[1]).uuid' "$PROJECT_DIR/extension/metadata.json")
 EXTENSION_DIR="$HOME/.local/share/gnome-shell/extensions/$EXTENSION_ID"
 GLIB_SCHEMA_DIR="$HOME/.local/share/glib-2.0/schemas"
 

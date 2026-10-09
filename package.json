@@ -16,7 +16,7 @@
   "name": "brightness-restore",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DarkPhilosophy/brightness-restore.git"
+    "url": "git+https://github.com/tiagosantosvdl/brightness-restore.git"
   },
   "scripts": {
     "lint": "eslint extension .scripts --format stylish || true; echo LINT_DONE",

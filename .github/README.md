@@ -1,17 +1,18 @@
 # Brightness Restore for GNOME Shell
 
-[![Extension CI](https://github.com/DarkPhilosophy/brightness-restore/actions/workflows/ci.yml/badge.svg)](https://github.com/DarkPhilosophy/brightness-restore/actions/workflows/ci.yml)
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/DarkPhilosophy/brightness-restore?utm_source=oss&utm_medium=github&utm_campaign=DarkPhilosophy%2Fbrightness-restore&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
-[![GNOME Extensions](https://img.shields.io/badge/GNOME-Extensions-orange.svg)](https://extensions.gnome.org/extension/9214/brightness-restore/) <!-- GNOME-SHELL-VERSIONS-START --> [![GNOME 45-50](https://img.shields.io/badge/GNOME-45--50-blue.svg)](https://www.gnome.org/) <!-- GNOME-SHELL-VERSIONS-END --> [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Extension CI](https://github.com/tiagosantosvdl/brightness-restore/actions/workflows/ci.yml/badge.svg)](https://github.com/tiagosantosvdl/brightness-restore/actions/workflows/ci.yml)
+[![Release packages](https://github.com/tiagosantosvdl/brightness-restore/actions/workflows/release.yml/badge.svg)](https://github.com/tiagosantosvdl/brightness-restore/actions/workflows/release.yml)
+<!-- GNOME-SHELL-VERSIONS-START --> [![GNOME 45-50](https://img.shields.io/badge/GNOME-45--50-blue.svg)](https://www.gnome.org/) <!-- GNOME-SHELL-VERSIONS-END --> [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+## About this fork
+
+This is [@tiagosantosvdl's fork](https://github.com/tiagosantosvdl/brightness-restore) of [Brightness Restore by @DarkPhilosophy](https://github.com/DarkPhilosophy/brightness-restore), maintained with Codex. Report issues with this fork in [this repository's issue tracker](https://github.com/tiagosantosvdl/brightness-restore/issues).
+
+The fork uses the extension UUID `brightness-restore@tiagosantosvdl.github.com` and shares the original settings schema and saved preferences. The [GNOME Extensions listing](https://extensions.gnome.org/extension/9214/brightness-restore/) belongs to the upstream project; install this fork from its GitHub releases or source.
 
 **Brightness Restore** - A GNOME Shell extension that solves the "missing persistence" issue for software brightness controls (especially on external monitors combined with OLED/Wayland setups).
 
 It automatically saves your local brightness adjustments and restores them upon login, ensuring your preferred brightness level is always maintained.
-
-**Status**: **Live** on GNOME Extensions (ID: 9214).
-<!-- EGO-VERSION-START -->
-[![Status: Pending](https://img.shields.io/badge/Status-Pending-yellow)](https://extensions.gnome.org/extension/9214/brightness-restore/) ![GitHub](https://img.shields.io/badge/GitHub-v4-blue) ![GNOME](https://img.shields.io/badge/GNOME-v3-green)
-<!-- EGO-VERSION-END -->
 
 ## Features
 
@@ -19,6 +20,7 @@ It automatically saves your local brightness adjustments and restores them upon 
 -   **Auto-Restore**: Applies the saved brightness level immediately upon session startup.
 -   **Integration**: Connects directly to Gnome Shell's internal `brightnessManager`.
 -   **Indicator**: Shows a simple percentage indicator in the panel (configurable).
+-   **Unavailable Brightness**: Hides the indicator and brightness slider when brightness control is unavailable.
 -   **Positioning**: Choose to place the indicator on the Left or Right of the QuickSettings area.
 
 ## Validation Status
@@ -90,13 +92,61 @@ You can configure the extension using standard Gnome Extensions settings (or `dc
 
 ## Install
 
+### GitHub Releases
+
+Download the ZIP or Debian package from [Releases](https://github.com/tiagosantosvdl/brightness-restore/releases). Each release includes `SHA256SUMS`; verify downloads with `sha256sum -c SHA256SUMS` after downloading both packages and the checksum file into the same directory.
+
+Install the ZIP with GNOME's extension tool (replace the version as needed):
+
+```bash
+gnome-extensions install --force brightness-restore@tiagosantosvdl.github.com-4.0.0.zip
+```
+
+On Debian or Ubuntu with GNOME Shell 45–50, install the Debian package:
+
+```bash
+sudo apt install ./gnome-shell-extension-brightness-restore-tiagosantosvdl_4.0.0_all.deb
+```
+
+Log out and back in after installation. Disable the upstream Brightness Restore extension if installed, then enable the fork:
+
+```bash
+gnome-extensions enable brightness-restore@tiagosantosvdl.github.com
+```
+
 ### Local Build
+
 ```bash
 ./build.sh
 ```
 
 ### Manual
-Copy the `extension/` folder to `~/.local/share/gnome-shell/extensions/brightness-restore@DarkPhilosophy`.
+
+Copy the contents of `extension/` to `~/.local/share/gnome-shell/extensions/brightness-restore@tiagosantosvdl.github.com`, then compile the schemas in that directory with `glib-compile-schemas`.
+
+## Building releases
+
+Install Python 3, Node.js, Make, `glib-compile-schemas` (Debian package `libglib2.0-bin`), and `dpkg-deb` (`dpkg-dev`), then run:
+
+```bash
+make release
+```
+
+This stages the extension without installing it and writes a versioned ZIP, an architecture-independent Debian package, and `SHA256SUMS` to `dist/`. The packages include compiled schemas and the license.
+
+The [release workflow](workflows/release.yml) follows the same pattern as the ArcMenu, Forge, and Dash to Panel forks:
+
+- Pushing a `v*` tag builds the packages and creates a GitHub release, or updates its assets if the release already exists.
+- Publishing a GitHub release builds packages from its tag and attaches them to that release.
+- Running the workflow manually builds the selected ref and uploads downloadable artifacts without publishing a release.
+
+Before tagging a release, update `package.json` and run `node .scripts/sync-version.js` to synchronize `package-lock.json`, `extension/metadata.json`, and `VERSION`. The tag must match the package version, such as `v4.0.0`. Tags containing a prerelease suffix, such as `v4.0.0-rc.1`, create prereleases. The numeric GNOME extension version remains separate from the full release version in `version-name`.
+
+Validate packaging locally with:
+
+```bash
+python3 -m unittest discover -s tests -p '*test.py'
+```
 
 ## Contributing
 

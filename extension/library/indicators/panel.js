@@ -58,6 +58,13 @@ export const BrightnessPanelIndicator = GObject.registerClass(
                 extension.openPreferences();
             });
             this.menu.addMenuItem(settingsItem);
+            this.setAvailable(false);
+        }
+
+        setAvailable(available) {
+            if (!available) this.menu.close();
+            this.visible = available;
+            this._sliderItem.visible = available;
         }
 
         update(percent, valueNormalized) {

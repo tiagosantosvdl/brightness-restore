@@ -41,7 +41,7 @@ This project follows the [Contributor Covenant](https://www.contributor-covenant
 ### Setup
 
 ```bash
-git clone https://github.com/DarkPhilosophy/brightness-restore.git
+git clone https://github.com/tiagosantosvdl/brightness-restore.git
 cd brightness-restore
 npm install  # Installs ESLint 9+ and dependencies
 ./build.sh   # Builds, lints, and installs locally
