@@ -35,7 +35,7 @@ It automatically saves your local brightness adjustments and restores them upon 
 <summary>Click to view full lint output</summary>
 
 ```text
-> brightness-restore@4.0.0 lint:fix
+> brightness-restore@4.0.1 lint:fix
 > eslint --fix extension .scripts --format stylish || true; echo LINT_DONE
 
 LINT_DONE
@@ -99,13 +99,13 @@ Download the ZIP or Debian package from [Releases](https://github.com/tiagosanto
 Install the ZIP with GNOME's extension tool (replace the version as needed):
 
 ```bash
-gnome-extensions install --force brightness-restore@tiagosantosvdl.github.com-4.0.0.zip
+gnome-extensions install --force brightness-restore@tiagosantosvdl.github.com-4.0.1.zip
 ```
 
 On Debian or Ubuntu with GNOME Shell 45–50, install the Debian package:
 
 ```bash
-sudo apt install ./gnome-shell-extension-brightness-restore-tiagosantosvdl_4.0.0_all.deb
+sudo apt install ./gnome-shell-extension-brightness-restore-tiagosantosvdl_4.0.1_all.deb
 ```
 
 Log out and back in after installation. Disable the upstream Brightness Restore extension if installed, then enable the fork:
@@ -134,13 +134,15 @@ make release
 
 This stages the extension without installing it and writes a versioned ZIP, an architecture-independent Debian package, and `SHA256SUMS` to `dist/`. The packages include compiled schemas and the license.
 
+Release filenames follow the same convention across these extensions: `<uuid>-<version>.zip`, `gnome-shell-extension-<name>-tiagosantosvdl_<debian-version>_all.deb`, and `SHA256SUMS`. Debian prerelease versions use `~rc.1` where ZIP versions use `-rc.1`.
+
 The [release workflow](workflows/release.yml) follows the same pattern as the ArcMenu, Forge, and Dash to Panel forks:
 
 - Pushing a `v*` tag builds the packages and creates a GitHub release, or updates its assets if the release already exists.
 - Publishing a GitHub release builds packages from its tag and attaches them to that release.
 - Running the workflow manually builds the selected ref and uploads downloadable artifacts without publishing a release.
 
-Before tagging a release, update `package.json` and run `node .scripts/sync-version.js` to synchronize `package-lock.json`, `extension/metadata.json`, and `VERSION`. The tag must match the package version, such as `v4.0.0`. Tags containing a prerelease suffix, such as `v4.0.0-rc.1`, create prereleases. The numeric GNOME extension version remains separate from the full release version in `version-name`.
+Before tagging a release, update `package.json` and run `node .scripts/sync-version.js` to synchronize `package-lock.json`, `extension/metadata.json`, and `VERSION`. The tag must match the package version, such as `v4.0.1`. Tags containing a prerelease suffix, such as `v4.0.1-rc.1`, create prereleases. The numeric GNOME extension version remains separate from the full release version in `version-name`.
 
 Validate packaging locally with:
 
